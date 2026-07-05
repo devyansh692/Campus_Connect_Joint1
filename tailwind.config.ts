@@ -9,11 +9,17 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          DEFAULT: "#0A66C2", // LinkedIn blue
+          DEFAULT: "#0A66C2",
           hover: "#004182",
           light: "#EBF4FD",
         },
+        primary: {
+          DEFAULT: "#0A66C2",
+          hover: "#004182",
+        },
         ink: {
+          DEFAULT: "#1D2226",
+          soft: "#5E5E5E",
           900: "#1D2226",
           700: "#38434F",
           500: "#5E5E5E",
@@ -22,17 +28,17 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "'Segoe UI'",
-          "Roboto",
-          "Helvetica",
-          "Arial",
-          "sans-serif",
+          "-apple-system", "BlinkMacSystemFont", "'Segoe UI'",
+          "Roboto", "Helvetica", "Arial", "sans-serif",
         ],
+      },
+      borderRadius: {
+        xl3: "1.5rem",
       },
       boxShadow: {
         card: "0 4px 12px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08)",
+        softer: "0 2px 8px rgba(0,0,0,0.06)",
+        lift: "0 8px 24px rgba(0,0,0,0.16)",
       },
       keyframes: {
         shake: {
