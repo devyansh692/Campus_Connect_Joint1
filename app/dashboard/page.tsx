@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { Plus, SlidersHorizontal } from "lucide-react";
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import { Plus, SlidersHorizontal, ChevronRight, LogOut } from "lucide-react";
 import PostCard from "@/app/components/ui/PostCard";
 import CreatePostModal from "@/app/components/ui/CreatePostModal";
 import Chip from "@/app/components/ui/Chip";
@@ -17,11 +19,20 @@ interface Post {
   author: { name: string | null; image: string | null };
 }
 
+interface ProfileSummary {
+  name: string | null;
+  image: string | null;
+  course: string | null;
+  _count: { posts: number };
+}
+
 const filters = ["All", "Hackathon", "Capstone", "Robotics", "Content", "Startup"];
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<ProfileSummary | null>(null);
   const [activeFilter, setActiveFilter] = useState("All");
   const [createOpen, setCreateOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(3);
@@ -42,6 +53,19 @@ export default function DashboardPage() {
     }
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    async function fetchProfile() {
+      try {
+        const res = await fetch("/api/profile");
+        if (res.ok) setProfile(await res.json());
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchProfile();
+  }, [session?.user?.id]);
 
   const filteredPosts = useMemo(() => {
     if (activeFilter === "All") return allPosts;
@@ -67,6 +91,36 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
+      {/* Profile snapshot */}
+      <Link
+        href="/profile"
+        className="surface-card mb-6 flex items-center justify-between rounded-xl3 border border-ink/10 p-4 shadow-softer transition hover:shadow-lift"
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          {profile?.image ? (
+            <img
+              src={profile.image}
+              alt={profile.name ?? "You"}
+              className="h-11 w-11 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+              {(profile?.name ?? session?.user?.name)?.charAt(0)?.toUpperCase() ?? "?"}
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink">
+              {profile?.name ?? session?.user?.name ?? "Your profile"}
+            </p>
+            <p className="truncate text-xs text-ink-soft">
+              {profile?.course ?? "Complete your profile"}
+              {profile?._count?.posts != null && ` · ${profile._count.posts} posts`}
+            </p>
+          </div>
+        </div>
+        <ChevronRight size={18} className="shrink-0 text-ink-soft" />
+      </Link>
+
       <section className="aurora surface-card mb-8 rounded-xl3 p-6 shadow-softer sm:p-8">
         <p className="stamp text-xs font-semibold uppercase tracking-widest text-primary">
           Campus Feed
@@ -78,9 +132,12 @@ export default function DashboardPage() {
           Real requests from real students across campuses — post what you need,
           or offer what you know.
         </p>
-        <div className="mt-5 hidden sm:block">
+        <div className="mt-5 hidden items-center gap-2 sm:flex">
           <Button onClick={() => setCreateOpen(true)}>
             <Plus size={16} /> Create post
+          </Button>
+          <Button variant="outline" onClick={() => signOut({ callbackUrl: "/login" })}>
+            <LogOut size={16} /> Sign out
           </Button>
         </div>
       </section>
